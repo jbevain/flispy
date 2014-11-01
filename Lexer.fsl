@@ -1,0 +1,53 @@
+﻿{
+module FLispy.Lexer
+
+open FLispy.Parser
+
+open System
+open System.Text
+
+open Microsoft.FSharp.Text.Lexing
+
+let lexeme lexbuf =
+    LexBuffer<_>.LexemeString lexbuf
+}
+
+let digit = ['0'-'9']
+let alpha = ['a'-'z' 'A'-'Z']
+let identifier = alpha+ (alpha | ['_' '-' '$' '*' '!' '?'])*
+let operator = ['+' '-' '*' '%' '/' '=' '>' '<'] | "<=" | ">="
+let whitespace = [' ' '\t' ]
+let newline = '\n' | '\r' '\n'
+
+rule tokenize = parse
+    | whitespace	{ tokenize lexbuf }
+    | newline       { tokenize lexbuf }
+    | '('           { LPAREN }
+    | ')'           { RPAREN }
+    | '''           { QUOTE }
+    | ['-']?digit+  { Int (Int32.Parse (lexeme lexbuf)) }
+    | '\"'          { string (StringBuilder ()) lexbuf }
+    | "#t"          { Bool (true) }
+    | "#f"          { Bool (false) }
+    | identifier    { Sym (lexeme lexbuf) }
+    | operator      { Sym (lexeme lexbuf) }
+    | eof   { EOF }
+    | _ { lexeme lexbuf |> sprintf "Parsing error: %s" |> failwith }
+
+and string s = parse
+    | eof					{ failwith "The What!" }
+    | newline				{ failwith "The What!" }
+    | "\\n"					{ string (s.Append ("\n")) lexbuf }
+    | "\\t"					{ string (s.Append ("\t")) lexbuf }
+    | "\\r"					{ string (s.Append ("\r")) lexbuf }
+    | "\\\""				{ string (s.Append ("\"")) lexbuf }
+    | "\\\\"				{ string (s.Append ("\\")) lexbuf }
+    | "\\"_					{ failwith "The What!" }
+    | "\""					{ Str (s.ToString ()) }
+    | _						{ string (s.Append (lexeme lexbuf)) lexbuf }
+
+{
+let parse_string str =
+    let lexbuf = LexBuffer<_>.FromString str
+    Parser.start tokenize lexbuf
+}

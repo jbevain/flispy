@@ -1,0 +1,27 @@
+﻿%{
+open FLispy.Runtime
+%}
+
+%start start
+
+%token <int> Int
+%token <string> Str
+%token <string> Sym
+%token <bool> Bool
+%token EOF LPAREN RPAREN QUOTE
+
+%type <Expression> start
+
+%%
+
+start: expr     { $1 }
+
+expr: Int       { Number($1) }
+    | Str       { String($1) }
+    | Sym       { Symbol(lookup_symbol($1)) }
+    | Bool      { Boolean($1) }
+    | QUOTE expr { List([Symbol(lookup_symbol("quote")); $2]) }
+    | LPAREN list RPAREN { List($2) }
+
+list: expr list { $1 :: $2 }
+    |           { [] }
