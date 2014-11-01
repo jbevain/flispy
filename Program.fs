@@ -19,9 +19,13 @@ let program_env =
 
     appendFrame bindings global_env
 
+let eval_string (str: string) (env: Environment) =
+    eval (parse_string str) env |> to_str
+
+eval_string "(+ 40 2)" program_env |> Console.WriteLine
+
 let assert' exp str =
-    let input = parse_string str
-    let res = to_str (eval input program_env)
+    let res = eval_string str program_env
     if exp <> res then
         sprintf "Expected %s got %s" exp res |> Console.WriteLine
 
