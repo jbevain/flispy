@@ -6,9 +6,6 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
     <FsYacc Include="Parser.fsy">
         <OtherFlags>--module FLispy.Parser</OtherFlags>
     </FsYacc>
